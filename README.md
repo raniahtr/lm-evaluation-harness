@@ -8,6 +8,8 @@ Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 Rania 30/11/25:
 - Fork le nouveau repo de lm-evaluation-harness
 - Evaluation de notre modele avec Vanilla SGLang pour les 3 benchmarks (MedQA, PubMedQA, MedMCQA) Generation
+
+  
 |          Tasks          |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
 |-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
 |medmcqa_generation       |Yaml   |strict-match|     0|exact_match|↑  |0.3925|±  |0.0076|
@@ -17,6 +19,7 @@ Rania 30/11/25:
 - J'ai créeé un dossier schemas dans lequel je définis des potentiels schemas qu'on peut tester. Pour l'instant j'ai run seulement pour pubmedqa_generation
 StrictAnswerOnly
 Level1
+
 |       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
 |-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
 |pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.374|±  |0.0217|
