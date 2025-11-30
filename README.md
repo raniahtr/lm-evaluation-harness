@@ -1,3 +1,426 @@
+
+
+# Team ML212 
+
+Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
+
+## Avancées de la team 
+Rania 30/11/25:
+- Fork le nouveau repo de lm-evaluation-harness
+- Evaluation de notre modele avec Vanilla SGLang pour les 3 benchmarks (MedQA, PubMedQA, MedMCQA) Generation
+|          Tasks          |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
+|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
+|medmcqa_generation       |Yaml   |strict-match|     0|exact_match|↑  |0.3925|±  |0.0076|
+|medqa_4options_generation|Yaml   |strict-match|     0|exact_match|↑  |0.4627|±  |0.0140|
+|pubmedqa_generation      |      1|strict-match|     0|exact_match|↑  |0.2340|±  |0.0190|
+
+- J'ai créeé un dossier schemas dans lequel je définis des potentiels schemas qu'on peut tester. Pour l'instant j'ai run seulement pour pubmedqa_generation
+StrictAnswerOnly
+Level1
+|       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
+|pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.374|±  |0.0217|
+
+StructuredAnswer
+Level2
+|       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
+|pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.374|±  |0.0217|
+
+AnswerWithOptionalReasoning
+Level 3
+|       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
+|pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.374|±  |0.0217|
+
+ComprehensiveAnswer
+Level 4
+|       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
+|pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.372|±  |0.0216|
+
+FlexibleAnswer
+Level 5
+|       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
+|pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.374|±  |0.0217|
+
+FreeFormAnswer
+Level 6
+|       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
+|pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.374|±  |0.0217|
+
+MinimalStructure
+Level 7
+|       Tasks       |Version|   Filter   |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------|------:|------------|-----:|-----------|---|----:|---|-----:|
+|pubmedqa_generation|      1|strict-match|     0|exact_match|↑  |0.002|±  | 0.002|
+
+- A Garder en tete : Il faudrait aussi essayer de changer certains parametres pour voir a quel point ca contraint la reponse ( max length, stop sequence ...)
+- Pour tester les différents schemas sur les modeles, cf le markdown schemas/QUICK_REFERENCE.md qui explique comment faire 
+
+Rania - 27/11/25 :
+- J'ai essayé de lancer l'évaluation de sglang_schema.py à la fois sans et avec contrainte de schéma.
+- Chez moi l'évaluation avec et sans contrainte pour PubMedQA et MedMCQA ont les mêmes résultats, ce qui me paraît étrange donc à investiguer.
+- J'ai essayé de simplifier les fonctions, mais je n'ai pas encore effectué tous les unit tests donc j'ai créé un fichier temporaire `sglang_schema_simpler.py` qu'il me reste à tester pour voir si ça fonctionnerait.
+
+Ismael : Tuto pour run sur le RCP
+
+Après avoir lancé un job (disons "meditron-basis"), dans un 1er pod (celui ouvert avec kubernetes dans votre editeur par ex) : 
+- se mettre dans le bon dossier à l'aide de ```cd /mloscratch/users/$GASPAR/lm-evaluation-harness```
+- puis installer les requirements (il faut le faire à chaque fois qu'on lance un nouveau pod) avec : ```pip install -e .``` et ```pip install sglang[all]```
+- et enfin lancer le serveur avec par exemple :
+  ```bash
+  python3 -m sglang.launch_server \
+    --model OpenMeditron/Meditron3-8B \
+    --dtype bfloat16 \
+    --tensor-parallel-size 1 \
+    --port 31000
+  
+Ensuite dans un 2eme pod (dans un nouveau terminal run ```runai bash meditron-basic```) :
+- ```cd /mloscratch/users/$GASPAR/lm-evaluation-harness```
+- run avec la task (benchmark) souhaitée (exemple de config) :
+  ```bash
+  python3 -m lm_eval \
+  --model sglang-schema \
+  --model_args pretrained=OpenMeditron/Meditron3-8B,base_url=http://localhost:31000 \
+  --tasks ... \
+  --batch_size 1 \
+  --limit 10 
+
+
+Ismael - 21/11 : 
+
+- j'ai run baseline sur les 3 benchmarks et voici les résultats :
+
+
+### Résultats Baseline — Meditron-3 8B (SGLang, RCP H100)
+
+Ces résultats correspondent à l’évaluation du modèle **OpenMeditron/Meditron3-8B** via notre backend `sglang-schema` en **mode baseline** (sans contraintes de schéma).  
+Le serveur SGLang est lancé dans le pod GPU, et LM-Evaluation-Harness exécute les tâches depuis un second terminal.
+
+#### Configuration
+- **Modèle :** `OpenMeditron/Meditron3-8B`  
+- **Backend :** SGLang (serveur HTTP + client)  
+- **GPU :** 1× H100 (RCP cluster)  
+- **Batch size :** 1  
+- **Mode :** baseline (schéma désactivé)  
+- **Commande générale :**
+  ```bash
+  python3 -m lm_eval \
+    --model sglang-schema \
+    --model_args pretrained=OpenMeditron/Meditron3-8B,base_url=http://localhost:31000 \
+    --tasks <task> \
+    --batch_size 1
+#### Scores obtenus
+
+| Benchmark            | Metric          | Score           | Stderr          |
+|----------------------|-----------------|-----------------|-----------------|
+| **MedQA (4 options)** | acc / acc_norm  | **0.6316**     | 0.0135          |
+| **PubMedQA**          | acc             | **0.752**      | 0.0193          |
+| **MedMCQA**           | acc / acc_norm  | **0.5953**     | 0.0076          |
+
+
+Ismael – 21/11 :
+- Déploiement complet de Meditron3-8B sur le cluster RCP via SGLang : installation des dépendances (sglang, transformers compatibles, flashinfer-cpu), authentification HuggingFace dans le pod, et lancement réussi du serveur HTTP SGLang (launch_server) sur GPU H100.
+- Intégration totale avec LM-Evaluation-Harness : installation du repo forké dans le pod, configuration du modèle sglang-schema avec base_url, et création d’un pipeline fonctionnel entre LM-Harness → backend custom → serveur SGLang → Meditron.
+- Première évaluation complète réussie !!! : exécution de Hellaswag sur Meditron3-8B via sglang-schema (--limit 10). Résultats obtenus et pipeline validé pour le mode baseline (sans schéma).
+- Le backend sglang-schema est maintenant correctement détecté, initialisé et utilisé par LM-Harness avec un serveur SGLang distant.
+- Prêt pour l’étape suivante : implémentation de la génération contrainte par schéma (extraction JSON, validation Pydantic, retry), puis lancements sur MedQA, PubMedQA et MedMCQA en mode baseline + schema.
+
+Leila 19/11 :
+- Complété le model sglang_schema.
+- testé depuis evaluate_basic_model.ipynb (desolee jai ajoute une cell au milieu au lieu de a la fin je vais corriger ca demain)
+- test basic de la class SGLangSchemaLM pour verifier que chaque method fonctionne comme prevu (des sortes de unit_test rapide dans le notebook evaluate_basic_model.ipynb )
+
+TODO : Tester avec des vrais requets a meditron etc.. 
+
+
+Rania :
+Fait (jusqu'au 19/11/25) :
+- Créé evaluate_basic_model.ipynb --> Notebook qui démontre comment évaluer un modèle de base avec le framework LM Evaluation Harness. Inclut setup, exploration des tâches, évaluation sur une ou plusieurs tâches, et analyse des résultats.
+- Créé lm-eval/models/sglang-schema.py --> Backbone pour la génération avec contraintes de schéma utilisant SGLang. Le modèle hérite de SGLangLM et ajoute le support pour outputs structurés via JSON Schema, validation Pydantic, extraction JSON. Enregistré avec @register_model("sglang-schema").
+
+!!! Note : Il faut se mettre d'accord sur l'héritage à utiliser (TemplateLM vs SGLangLM) pour notre modèle de schéma contraint.
+
+- J'ai aussi essayer de comprendre le role des 3 fonctions obligatoires pour le model. Je met mes notes en dessous pour que ca soit plus clair pour tout le monde.
+```
+LM (base class)
+├── loglikelihood()          → For multiple-choice and scoring tasks
+├── loglikelihood_rolling()  → For perplexity/language modeling tasks  
+└── generate_until()         → For text generation tasks
+```
+
+`loglikelihood(requests)`:Computes the **log probability** that the model would generate a specific continuation given a context.
+`loglikelihood_rolling(requests)`:Computes the **full log-likelihood** of an entire string/document, used for **perplexity** calculations. Unlike `loglikelihood()`, this doesn't have a separate context and continuation—it computes the probability of the entire text.
+`generate_until(requests)`: Generates text from the model until stopping criteria are met. This is used when you need the model to **produce new text**, not just score existing text.
+
+## Summary Table
+
+| Method | Purpose | Input | Output | Used For |
+|--------|---------|-------|--------|----------|
+| `loglikelihood()` | Score how likely a continuation is | `(context, continuation)` | `(logprob, is_greedy)` | Multiple-choice, ranking |
+| `loglikelihood_rolling()` | Score entire text/document | `(string,)` | `logprob` | Perplexity, language modeling |
+| `generate_until()` | Generate new text | `(context, gen_kwargs)` | `continuation` | Open-ended generation |
+
+---
+
+## Step-by-Step détaillé
+
+## Step 2: Adding a New Model Backend with Schema-Based Responses
+
+This guide outlines the steps to add a new model backend to the lm-evaluation-harness that supports structured outputs (JSON Schema using Pydantic).
+
+### Overview
+
+We need to:
+1. Create a new model backend class that implements the `LM` interface
+2. Add support for schema-based responses (JSON Schema via Pydantic)
+3. Register the model so it can be used via CLI
+4. Test the implementation
+
+### Step-by-Step Implementation Plan
+
+#### Step 1: Understand the Model Interface
+
+**Location**: `lm_eval/api/model.py`
+
+The base `LM` class requires three abstract methods:
+- `loglikelihood(requests)` → Returns `list[tuple[float, bool]]` (logprob, is_greedy)
+- `loglikelihood_rolling(requests)` → Returns `list[float]` (logprob)
+- `generate_until(requests)` → Returns `list[str]` (generated text)
+
+**Key Files to Study**:
+- `lm_eval/models/huggingface.py` - Reference implementation for HuggingFace models
+- `lm_eval/models/dummy.py` - Minimal example implementation
+- `docs/model_guide.md` - Official guide for adding new models
+
+#### Step 2: Create the Model Backend File
+
+**Action**: Create a new file `lm_eval/models/meditron_lm.py`
+
+**Structure**:
+```python
+from lm_eval.api.model import TemplateLM  # or LM if starting from scratch
+from lm_eval.api.registry import register_model
+from typing import Optional
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from pydantic import BaseModel, ValidationError
+import json
+
+@register_model("meditron", "meditron-schema")
+class MeditronLM(TemplateLM):
+    """
+    Meditron model backend with support for structured outputs via JSON Schema.
+    """
+    
+    def __init__(
+        self,
+        pretrained: str,
+        response_schema: Optional[dict] = None,  # JSON Schema dict
+        schema_model: Optional[BaseModel] = None,  # Pydantic model class
+        **kwargs
+    ):
+        # Initialize model and tokenizer
+        # Store schema information
+        pass
+```
+
+#### Step 3: Implement Required Methods
+
+**3.1 Initialize Model and Tokenizer**
+- Load model using `AutoModelForCausalLM.from_pretrained()`
+- Load tokenizer using `AutoTokenizer.from_pretrained()`
+- Move model to appropriate device (CUDA/CPU)
+- Store schema information for validation
+
+**3.2 Implement `loglikelihood()`**
+- Tokenize context and continuation
+- Compute log probabilities using model forward pass
+- Return list of `(logprob, is_greedy)` tuples
+- Reference: See `huggingface.py` lines ~375-391 for pattern
+
+**3.3 Implement `loglikelihood_rolling()`**
+- Used for perplexity calculations
+- Process full text without truncation
+- Handle chunking for long sequences
+- Return list of log probabilities
+
+**3.4 Implement `generate_until()` with Schema Support**
+- Generate text from model
+- **NEW**: Parse generated text as JSON
+- **NEW**: Validate against Pydantic schema if provided
+- **NEW**: Handle validation errors (retry or return error message)
+- Return list of generated/validated strings
+
+**Example schema validation in `generate_until()`**:
+```python
+def generate_until(self, requests, disable_tqdm: bool = False):
+    results = []
+    for request in requests:
+        context, gen_kwargs = request.args
+        # Generate text
+        generated = self._generate_text(context, gen_kwargs)
+        
+        # If schema is provided, validate
+        if self.schema_model:
+            try:
+                # Try to extract JSON from generated text
+                json_str = self._extract_json(generated)
+                # Validate against Pydantic model
+                validated = self.schema_model.parse_raw(json_str)
+                results.append(validated.json())
+            except (json.JSONDecodeError, ValidationError) as e:
+                # Handle validation errors
+                results.append(f"ERROR: {str(e)}")
+        else:
+            results.append(generated)
+    return results
+```
+
+#### Step 4: Add Schema Support Utilities
+
+**Create helper methods**:
+- `_extract_json(text)`: Extract JSON from model output (may be wrapped in markdown, etc.)
+- `_validate_schema(json_str, schema_model)`: Validate JSON against Pydantic model
+- `_create_pydantic_model(schema_dict)`: Dynamically create Pydantic model from JSON Schema
+
+**Location**: Add as private methods in `MeditronLM` class
+
+**Dependencies to add**:
+- `pydantic` - For schema validation
+- `jsonschema` - For JSON Schema to Pydantic conversion (optional helper)
+
+#### Step 5: Register the Model
+
+**5.1 Add Registration Decorator**
+```python
+@register_model("meditron", "meditron-schema")
+class MeditronLM(TemplateLM):
+    ...
+```
+
+**5.2 Import in `__init__.py`**
+**Location**: `lm_eval/models/__init__.py`
+
+Add:
+```python
+from . import meditron_lm
+```
+
+#### Step 6: Add CLI Support for Schema Arguments
+
+**Location**: `lm_eval/__main__.py` (if needed for special handling)
+
+The `--model_args` flag should support:
+- `pretrained=OpenMeditron/Meditron3-8B`
+- `response_schema=/path/to/schema.json` (JSON Schema file)
+- `schema_model=MyPydanticModel` (if using pre-defined Pydantic models)
+
+**Example CLI usage**:
+```bash
+lm_eval --model meditron \
+    --model_args pretrained=OpenMeditron/Meditron3-8B,response_schema=schemas/medical_response.json \
+    --tasks hellaswag
+```
+
+#### Step 7: Create Schema Examples
+
+**Create example schemas**:
+- `schemas/medical_response.json` - Example JSON Schema for medical responses
+- `schemas/qa_response.json` - Example for Q&A tasks
+
+**Example JSON Schema**:
+```json
+{
+  "type": "object",
+  "properties": {
+    "answer": {"type": "string"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "sources": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["answer", "confidence"]
+}
+```
+
+#### Step 8: Write Tests
+
+**Location**: `tests/models/test_meditron.py`
+
+**Test cases to implement**:
+1. Test model initialization
+2. Test `loglikelihood()` with sample requests
+3. Test `loglikelihood_rolling()` with sample text
+4. Test `generate_until()` without schema
+5. Test `generate_until()` with schema validation (valid JSON)
+6. Test `generate_until()` with schema validation (invalid JSON)
+7. Test schema parsing from various formats (markdown code blocks, plain JSON, etc.)
+
+**Reference**: See `tests/models/test_huggingface.py` for test patterns
+
+#### Step 9: Documentation
+
+**Update documentation**:
+- Add model to main README.md under "Model APIs and Inference Servers" table
+- Document schema argument usage
+- Add example usage in `docs/model_guide.md` or create `docs/meditron_model.md`
+
+### Implementation Checklist
+
+- [ ] Create `lm_eval/models/meditron_lm.py`
+- [ ] Implement `__init__()` with schema support
+- [ ] Implement `loglikelihood()`
+- [ ] Implement `loglikelihood_rolling()`
+- [ ] Implement `generate_until()` with schema validation
+- [ ] Add JSON extraction helper method
+- [ ] Add schema validation helper method
+- [ ] Register model with `@register_model()` decorator
+- [ ] Import model in `lm_eval/models/__init__.py`
+- [ ] Create example JSON Schema files
+- [ ] Write unit tests in `tests/models/test_meditron.py`
+- [ ] Test via CLI: `lm_eval --model meditron --tasks hellaswag`
+- [ ] Test with schema: `lm_eval --model meditron --model_args response_schema=...`
+- [ ] Update README.md with model documentation
+- [ ] Add example usage to docs
+
+### Key Files Reference
+
+| File | Purpose |
+|------|---------|
+| `lm_eval/api/model.py` | Base `LM` class interface |
+| `lm_eval/models/huggingface.py` | Reference implementation (1500+ lines) |
+| `lm_eval/models/dummy.py` | Minimal example (42 lines) |
+| `lm_eval/api/registry.py` | Model registration system |
+| `docs/model_guide.md` | Official model addition guide |
+| `lm_eval/__main__.py` | CLI argument parsing |
+
+### Dependencies to Install
+
+```bash
+pip install pydantic jsonschema
+```
+
+### Next Steps After Implementation
+
+1. Test with existing tasks (hellaswag, arc_easy, etc.)
+2. Create custom tasks that require structured outputs
+3. Benchmark schema validation performance impact
+4. Consider adding retry logic for invalid schema responses
+5. Add support for streaming structured outputs (if needed)
+
+### Resources
+
+- [Pydantic Documentation](https://docs.pydantic.dev/)
+- [JSON Schema to Pydantic](https://pydantic-docs.helpmanual.io/usage/models/#creating-models-from-json-schema)
+- [LM Evaluation Harness Model Guide](./docs/model_guide.md)
+- [HuggingFace Transformers Docs](https://huggingface.co/docs/transformers/)
+
+
+
+
+
 # Language Model Evaluation Harness
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)

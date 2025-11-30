@@ -26,6 +26,7 @@ profile_default/
 ipython_config.py
 
 # Output and data
+results_ML212/
 output/
 data/
 temp/
@@ -45,3 +46,5 @@ examples/wandb/
 
 # PyInstaller
 *.spec
+
+shemas/pycache/
