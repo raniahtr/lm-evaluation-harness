@@ -9,15 +9,18 @@ from .medical_qa_schemas import (
     # PubMedQA schemas (Yes/No/Maybe)
     StrictAnswerOnly,
     StructuredAnswer,
-    AnswerWithOptionalReasoning,
-    ComprehensiveAnswer,
-    FlexibleAnswer,
-    FreeFormAnswer,
+    AnswerWithReasoning,
+    AnswerWithReasoningAndConfidence,
+    GroundedAnswer,
+    FlexibleGroundedAnswer,
     MinimalStructure,
     
     # Multiple Choice schemas (A/B/C/D)
     StrictMultipleChoice,
+    MCQAnswerWithConfidence,
+    MCQAnswerWithJustification,
     MultipleChoiceWithReasoning,
+    MCQWithFullElimination,
     ComprehensiveMultipleChoice,
     
     # Registry
@@ -29,13 +32,16 @@ from .medical_qa_schemas import (
 __all__ = [
     "StrictAnswerOnly",
     "StructuredAnswer",
-    "AnswerWithOptionalReasoning",
-    "ComprehensiveAnswer",
-    "FlexibleAnswer",
-    "FreeFormAnswer",
+    "AnswerWithReasoning",
+    "AnswerWithReasoningAndConfidence",
+    "GroundedAnswer",
+    "FlexibleGroundedAnswer",
     "MinimalStructure",
     "StrictMultipleChoice",
+    "MCQAnswerWithConfidence",
+    "MCQAnswerWithJustification",
     "MultipleChoiceWithReasoning",
+    "MCQWithFullElimination",
     "ComprehensiveMultipleChoice",
     "PUBMEDQA_SCHEMAS",
     "MULTIPLE_CHOICE_SCHEMAS",

@@ -221,12 +221,23 @@ class EvaluationTracker:
                 # update initial results dict
                 results.update({"task_hashes": task_hashes})
                 results.update(asdict(self.general_config_tracker))
-                dumped = json.dumps(
-                    results,
-                    indent=2,
-                    default=handle_non_serializable,
-                    ensure_ascii=False,
-                )
+                
+                # Validate results before dumping
+                if not results:
+                    eval_logger.error("Results dict is empty or None. Cannot save.")
+                    return
+                
+                try:
+                    dumped = json.dumps(
+                        results,
+                        indent=2,
+                        default=handle_non_serializable,
+                        ensure_ascii=False,
+                    )
+                except Exception as json_err:
+                    eval_logger.error(f"Failed to serialize results to JSON: {json_err}")
+                    eval_logger.error(f"Results type: {type(results)}, keys: {list(results.keys()) if isinstance(results, dict) else 'N/A'}")
+                    raise
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
                 self.date_id = datetime.now().isoformat().replace(":", "-")
@@ -244,7 +255,15 @@ class EvaluationTracker:
                         f"results_{self.date_id}.json"
                     )
 
-                file_results_aggregated.open("w", encoding="utf-8").write(dumped)
+                eval_logger.info(f"Writing results to: {file_results_aggregated}")
+                try:
+                    with file_results_aggregated.open("w", encoding="utf-8") as f:
+                        f.write(dumped)
+                    eval_logger.info(f"Successfully saved results to: {file_results_aggregated}")
+                except Exception as write_err:
+                    eval_logger.error(f"Failed to write file {file_results_aggregated}: {write_err}")
+                    eval_logger.error(f"File path exists: {file_results_aggregated.exists()}, parent exists: {file_results_aggregated.parent.exists()}")
+                    raise
 
                 if self.api and self.push_results_to_hub:
                     repo_id = (
@@ -274,8 +293,10 @@ class EvaluationTracker:
                     )
 
             except Exception as e:
-                eval_logger.warning("Could not save results aggregated")
-                eval_logger.info(repr(e))
+                eval_logger.error("Could not save results aggregated")
+                eval_logger.error(f"Exception type: {type(e).__name__}")
+                eval_logger.error(f"Exception message: {str(e)}")
+                eval_logger.error(f"Exception details: {repr(e)}", exc_info=True)
         else:
             eval_logger.info(
                 "Output path not provided, skipping saving results aggregated"

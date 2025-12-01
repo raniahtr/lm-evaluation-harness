@@ -5,6 +5,32 @@
 Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 
 ## Avancées de la team 
+Leila 1/12/25:
+
+  
+| Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
+|-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
+|  PUBMEDQA | Baseline (vanilla)      |Yaml   |strict-match|     0|exact_match|↑  |0.2340|±  |0.0190|
+|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
+|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
+|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
+|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
+|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.374 |±  |0.0270|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Rania 30/11/25:
 - Fork le nouveau repo de lm-evaluation-harness
 - Evaluation de notre modele avec Vanilla SGLang pour les 3 benchmarks (MedQA, PubMedQA, MedMCQA) Generation

@@ -1,7 +1,9 @@
 import copy
 import json
 import logging
+import os
 import re
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional, Type, Union
 
@@ -772,6 +774,15 @@ class SGLangSchemaLM(SGLangLM):
                 # Import the class from the string path
                 module_path, class_name = schema_model_str.rsplit(".", 1)
                 import importlib
+                
+                # Add project root to Python path if not already there
+                # This allows importing modules like 'schemas.medical_qa_schemas'
+                # Find the project root (directory containing 'lm_eval')
+                current_file = __file__
+                project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(current_file))))
+                if project_root not in sys.path:
+                    sys.path.insert(0, project_root)
+                
                 module = importlib.import_module(module_path)
                 args["schema_model"] = getattr(module, class_name)
                 eval_logger.info(f"Imported schema model: {schema_model_str}")
