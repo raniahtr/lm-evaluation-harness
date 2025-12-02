@@ -6,23 +6,43 @@ Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 
 ## Avancées de la team 
 Leila 1/12/25:
+- Re organisé les schemas pour pudmedqa et ajouter les schemas pour QCMs dans schemas/medical_qa_schemas.py
+- Run tous les levels et baseline pour pudmedqa et analyse des results dans results/pudmedqa/results_analysis.ipynb
+NOTE : 
+1) Please si qlq run, ajoutez ' -- log_samples ' dans la commande et RENOMMER les samples comme 'samples_pubmedqa_generation_baseline_other.jsonl' pour qu'on sy retrouve. 
+2) J'ai eu des problems avec le saving des results, mettez le ABSOLUT PATH dans ' -- output_path ' comme '  --output_path /mloscratch/users/benjello/lm-evaluation-harness/results/medqa/medqa_level2.json '
 
   
 | Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
 |-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
-|  PUBMEDQA | Baseline (vanilla)      |Yaml   |strict-match|     0|exact_match|↑  |0.2340|±  |0.0190|
-|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
-|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
-|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
+|  PUBMEDQA | Baseline (vanilla)      |Yaml   |strict-match|     0|exact_match|↑  |0.762 |±  |0.0191|
+|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
 |           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
 |           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.374 |±  |0.0270|
+|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0217|
 
 
+| Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
+|-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
+|  MEDQA    | Baseline (vanilla)      |Yaml   |strict-match|     0|exact_match|↑  |0.4713|±  |0.0140|
+|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.0283|±  |0.0046|
+|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.0283|±  |0.0046|
+|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
 
 
-
-
-
+COMMANDE POUR RUN :
+1) Launch server sg-lang (berra t'as mis comment)
+2) python3 -m lm_eval \
+  --model sglang-schema \
+  --model_args pretrained=OpenMeditron/Meditron3-8B,base_url=http://localhost:31000,schema_model=schemas.medical_qa_schemas.MCQAnswerWithJustification\
+  --tasks medqa_4options_generation \
+  --output_path /mloscratch/users/benjello/lm-evaluation-harness/results/medqa/medqa_level3.json \
+  --log_samples
 
 
 
