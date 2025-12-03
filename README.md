@@ -8,6 +8,7 @@ Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 Leila 1/12/25:
 - Re organisé les schemas pour pudmedqa et ajouter les schemas pour QCMs dans schemas/medical_qa_schemas.py
 - Run tous les levels et baseline pour pudmedqa et analyse des results dans results/pudmedqa/results_analysis.ipynb
+- Modifié la task pubmedqa. CONSEIL : Vous devriez voir une petite variance entre task et task_generate (c'est normal parce que le model est plus libre) mais pas un ENORME ecart. Regardez les baselines de berra sur les tasks non generate et comparez. Si l'ecart est trop grand, commencez par checker le prompt, le config etc.. pour etre sur que les resultats sont cohérents.
 NOTE : 
 1) Please si qlq run, ajoutez ' -- log_samples ' dans la commande et RENOMMER les samples comme 'samples_pubmedqa_generation_baseline_other.jsonl' pour qu'on sy retrouve. 
 2) J'ai eu des problems avec le saving des results, mettez le ABSOLUT PATH dans ' -- output_path ' comme '  --output_path /mloscratch/users/benjello/lm-evaluation-harness/results/medqa/medqa_level2.json '
@@ -19,9 +20,9 @@ NOTE :
 |           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
 |           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
 |           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
-|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0270|
-|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.374 |±  |0.0270|
-|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.376 |±  |0.0217|
+|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
 
 
 | Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
@@ -36,7 +37,7 @@ NOTE :
 
 
 COMMANDE POUR RUN :
-1) Launch server sg-lang (berra t'as mis comment)
+1) Launch server sg-lang (berra a mis comment)
 2) python3 -m lm_eval \
   --model sglang-schema \
   --model_args pretrained=OpenMeditron/Meditron3-8B,base_url=http://localhost:31000,schema_model=schemas.medical_qa_schemas.MCQAnswerWithJustification\
