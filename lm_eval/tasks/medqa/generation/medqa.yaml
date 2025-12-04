@@ -4,8 +4,8 @@ output_type: generate_until
 training_split: train
 validation_split: validation
 test_split: test
-#doc_to_text: !function preprocess_medqa.doc_to_text
-doc_to_text: "Q: {{sent1}}\n (A) {{ending0}} (B) {{ending1}} (C) {{ending2}} (D) {{ending3}}\nA: Provide the final answer enclosed in boxed{the_answer}."
+doc_to_text: !function preprocess_medqa.doc_to_text_medqa_neutral
+#doc_to_text: "Q: {{sent1}}\n (A) {{ending0}} (B) {{ending1}} (C) {{ending2}} (D) {{ending3}}\nA: Provide the final answer enclosed in boxed{the_answer}."
 doc_to_target: "{{['A', 'B', 'C', 'D'][label]}}" #!function preprocess_medqa.doc_to_target
 # doc_to_choice: [ 'A', 'B', 'C', 'D' ]
 filter_list:

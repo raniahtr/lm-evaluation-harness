@@ -1,0 +1,214 @@
+================================================================================
+MedQA Generation Extraction Failure Analysis
+================================================================================
+
+Total samples analyzed: 1273
+
+--- Current Regex Pattern Statistics ---
+Pattern: (?i)answer\W(?:is)*\W*([A-D])(?:\W|$)|(?:answer|boxed)?{\W*([A-D])\W+
+Correct extractions: 600 (47.1%)
+Wrong extractions: 452 (35.5%)
+No match found: 0 (0.0%)
+Invalid fallback: 221 (17.4%)
+Correct extraction but wrong answer: 0
+
+--- Output Format Distribution ---
+  standalone_letter: 723 (56.8%)
+  answer_colon: 468 (36.8%)
+  other: 51 (4.0%)
+  answer_is: 21 (1.6%)
+  empty: 10 (0.8%)
+
+--- Failure Mode Distribution ---
+  wrong_extraction: 452 (35.5%)
+  invalid_fallback: 221 (17.4%)
+
+--- Alternative Pattern Comparison ---
+
+current:
+  Pattern: (?i)answer\W(?:is)*\W*([A-D])(?:\W|$)|(?:answer|boxed)?{\W*([A-D])\W+
+  Success rate: 47.1%
+  Invalid fallback: 221 (17.4%)
+
+simple_letter:
+  Pattern: \b([A-D])\b
+  Success rate: 47.1%
+  Invalid fallback: 221 (17.4%)
+
+answer_colon:
+  Pattern: (?i)answer\s*[:\-]?\s*([A-D])(?:\W|$)
+  Success rate: 21.4%
+  Invalid fallback: 221 (17.4%)
+
+boxed_only:
+  Pattern: (?i)boxed\s*{\s*([A-D])\s*}
+  Success rate: 0.0%
+  Invalid fallback: 221 (17.4%)
+
+answer_is:
+  Pattern: (?i)(?:the\s+)?answer\s+is\s+([A-D])(?:\W|$)
+  Success rate: 2.7%
+  Invalid fallback: 221 (17.4%)
+
+flexible:
+  Pattern: (?i)(?:answer|boxed|final)\s*(?:is|:)?\s*[:\-]?\s*[{\[]?\s*([A-D])\s*[}\]]?
+  Success rate: 24.8%
+  Invalid fallback: 221 (17.4%)
+
+--- Sample Failure Cases (First 10) ---
+
+Failure 1:
+  Doc ID: 0
+  Target: B
+  Extracted: A
+  Format: answer_colon
+  Reason: wrong_letter_extracted
+  Raw output (first 200 chars):  
+Answer: A
+
+Failure 2:
+  Doc ID: 1
+  Target: D
+  Extracted: B
+  Format: answer_colon
+  Reason: wrong_letter_extracted
+  Raw output (first 200 chars):  
+Answer: B
+
+Failure 3:
+  Doc ID: 3
+  Target: D
+  Extracted: B
+  Format: standalone_letter
+  Reason: wrong_letter_extracted
+  Raw output (first 200 chars):  
+{B}
+
+A: The patient has a severe infection with a gram-negative bacillus that is encapsulated and produces a polysaccharide capsule. The capsule is composed of phosphorylated N-acetylglucosamine dim
+
+Failure 4:
+  Doc ID: 4
+  Target: B
+  Extracted: None
+  Format: standalone_letter
+  Reason: no_match_found
+  Raw output (first 200 chars):  
+A: The patient has allergic conjunctivitis, which is characterized by itching, tearing, and redness of the eyes. The patient's symptoms are consistent with this diagnosis. The patient's occupation a
+
+Failure 5:
+  Doc ID: 5
+  Target: D
+  Extracted: None
+  Format: other
+  Reason: no_match_found
+  Raw output (first 200 chars):  
+The patient is experiencing an acute coronary syndrome (ACS) due to cocaine-induced coronary artery spasm. The first step in management is to provide reassurance and continuous monitoring. The patie
+
+Failure 6:
+  Doc ID: 6
+  Target: C
+  Extracted: B
+  Format: answer_colon
+  Reason: wrong_letter_extracted
+  Raw output (first 200 chars):  
+{B}
+
+Explanation:
+The patient has a kidney stone, which is causing obstruction of the ureter. The most common cause of kidney stones is hypercalciuria, which is often associated with benign prostati
+
+Failure 7:
+  Doc ID: 10
+  Target: D
+  Extracted: C
+  Format: answer_colon
+  Reason: wrong_letter_extracted
+  Raw output (first 200 chars):  
+{C}
+
+Explanation:
+The confirmatory test for HIV is an HIV-1/HIV2 antibody differentiation immunoassay. This test is used to confirm the diagnosis of HIV infection. The Western blot is a confirmatory
+
+Failure 8:
+  Doc ID: 11
+  Target: D
+  Extracted: None
+  Format: standalone_letter
+  Reason: no_match_found
+  Raw output (first 200 chars):  
+A: The patient has a myeloproliferative neoplasm (MPN) with a JAK2 mutation. The most common MPNs are polycythemia vera, essential thrombocytosis, and primary myelofibrosis. The patient has primary 
+
+Failure 9:
+  Doc ID: 13
+  Target: D
+  Extracted: None
+  Format: standalone_letter
+  Reason: no_match_found
+  Raw output (first 200 chars):  
+A: 
+The patient has a murmur of aortic stenosis. The murmur is louder when the patient is standing because the increased venous return to the right atrium increases the right ventricular stroke volu
+
+Failure 10:
+  Doc ID: 15
+  Target: B
+  Extracted: None
+  Format: standalone_letter
+  Reason: no_match_found
+  Raw output (first 200 chars):  
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 
+D: 
+
+A: 
+B: 
+C: 

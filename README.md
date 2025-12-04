@@ -5,6 +5,21 @@
 Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 
 ## Avancées de la team 
+
+Rania 4/12/25:
+- Tenter d'a'ameliorer la baseline de medqa4option generation. Pour cela j'ai essayé plusieurs prompts. Passé de 0.4713 à 0.4988 avec le prompt neutral (cf le preprocessing.py de la task medqa4option_generation).
+- Run des levels de schemas avec la tache modifiee 
+
+| Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
+|-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
+|  MEDQA4OPTION | Baseline (initial prompt) |Yaml   |strict-match|     0|exact_match|↑  |0.4713|±  |0.0140|
+|           | Baseline (prompt mod.) |Yaml   |strict-match|     0|exact_match|↑  |0.4988|±  |0.0140|
+|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.6182|±  |0.0136|
+|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.6182|±  |0.0136|
+|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
 Leila 1/12/25:
 - Re organisé les schemas pour pudmedqa et ajouter les schemas pour QCMs dans schemas/medical_qa_schemas.py
 - Run tous les levels et baseline pour pudmedqa et analyse des results dans results/pudmedqa/results_analysis.ipynb
