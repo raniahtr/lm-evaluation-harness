@@ -13,13 +13,13 @@ Rania 4/12/25:
 | Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
 |-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
 |  MEDQA4OPTION | Baseline (initial prompt) |Yaml   |strict-match|     0|exact_match|↑  |0.4713|±  |0.0140|
-|           | Baseline (prompt mod.) |Yaml   |strict-match|     0|exact_match|↑  |0.4988|±  |0.0140|
-|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.6182|±  |0.0136|
-|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.6182|±  |0.0136|
-|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
-|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | Baseline (prompt mod.)  |Yaml   |strict-match|     0|exact_match|↑  |0.4988|±  |0.0140|
+|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.6214|±  |0.0136|
+|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.6214|±  |0.0136|
+|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.6127|±  |0.0137|
+|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0135|
 |           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
-|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0136|
 Leila 1/12/25:
 - Re organisé les schemas pour pudmedqa et ajouter les schemas pour QCMs dans schemas/medical_qa_schemas.py
 - Run tous les levels et baseline pour pudmedqa et analyse des results dans results/pudmedqa/results_analysis.ipynb
@@ -61,7 +61,12 @@ COMMANDE POUR RUN :
   --log_samples
 
 
-
+python3 -m lm_eval \
+  --model sglang-schema \
+  --model_args pretrained=OpenMeditron/Meditron3-8B,base_url=http://localhost:31000,schema_model=schemas.medical_qa_schemas.MCQAnswerWithJustification\
+  --tasks medqa_4options_generation \
+  --output_path /mloscratch/users/hatrouhou/lm-evaluation-harness/results/medqa/medqa4options_level3_rania.json \
+  --log_samples
 
 
 
@@ -138,10 +143,11 @@ Après avoir lancé un job (disons "meditron-basis"), dans un 1er pod (celui ouv
 - et enfin lancer le serveur avec par exemple :
   ```bash
   python3 -m sglang.launch_server \
-    --model OpenMeditron/Meditron3-8B \
+    --model-path OpenMeditron/Meditron3-8B \
     --dtype bfloat16 \
     --tensor-parallel-size 1 \
-    --port 31000
+    --port 31000 \
+    --mem-fraction-static 0.6
   
 Ensuite dans un 2eme pod (dans un nouveau terminal run ```runai bash meditron-basic```) :
 - ```cd /mloscratch/users/$GASPAR/lm-evaluation-harness```

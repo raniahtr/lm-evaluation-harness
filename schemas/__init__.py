@@ -13,7 +13,6 @@ from .medical_qa_schemas import (
     AnswerWithReasoningAndConfidence,
     GroundedAnswer,
     FlexibleGroundedAnswer,
-    MinimalStructure,
     
     # Multiple Choice schemas (A/B/C/D)
     StrictMultipleChoice,
@@ -36,7 +35,6 @@ __all__ = [
     "AnswerWithReasoningAndConfidence",
     "GroundedAnswer",
     "FlexibleGroundedAnswer",
-    "MinimalStructure",
     "StrictMultipleChoice",
     "MCQAnswerWithConfidence",
     "MCQAnswerWithJustification",

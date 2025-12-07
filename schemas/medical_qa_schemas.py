@@ -150,21 +150,6 @@ class FlexibleGroundedAnswer(BaseModel):
 
 
 
-# ============================================================================
-# LEVEL 7: Very Low Constraint - Minimal Structure
-# ============================================================================
-# Insight: Tests if minimal JSON structure (just an object) helps vs. vanilla.
-#          Measures baseline benefit of structured output format.
-
-class MinimalStructure(BaseModel):
-    """Level 7: Minimal structure - just requires valid JSON object."""
-    response: str = Field(
-        description="The model's response in any format"
-    )
-    
-    class Config:
-        extra = "allow"
-
 
 # ============================================================================
 # MULTIPLE CHOICE SCHEMAS (for MedQA, MedMCQA)
@@ -343,7 +328,6 @@ PUBMEDQA_SCHEMAS = {
     "level4_reasoning_confidence": AnswerWithReasoningAndConfidence,
     "level5_grounded": GroundedAnswer,
     "level6_flexible": FlexibleGroundedAnswer,
-    "level7_minimal": MinimalStructure,
 }
 
 MULTIPLE_CHOICE_SCHEMAS = {
@@ -393,12 +377,6 @@ SCHEMA_METADATA = {
         "description": "Core fields plus optional extras allowed",
         "expected_insight": "Flexibility benefit analysis",
         "schema_class": "FlexibleGroundedAnswer",
-    },
-    "level7_minimal": {
-        "constraint_level": 7,
-        "description": "Minimal JSON structure",
-        "expected_insight": "Baseline structured output benefit",
-        "schema_class": "MinimalStructure",
     },
     # Multiple Choice schemas
     "mc_level1_strict": {
