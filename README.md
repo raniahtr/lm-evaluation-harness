@@ -18,7 +18,7 @@ Rania 4/12/25:
 |           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.6214|±  |0.0136|
 |           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.6127|±  |0.0137|
 |           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0135|
-|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
+|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.5852|±  |0.0138|
 |           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0136|
 Leila 1/12/25:
 - Re organisé les schemas pour pudmedqa et ajouter les schemas pour QCMs dans schemas/medical_qa_schemas.py
