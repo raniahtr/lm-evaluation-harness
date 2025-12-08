@@ -152,7 +152,7 @@ class FlexibleGroundedAnswer(BaseModel):
 
 
 # ============================================================================
-# MULTIPLE CHOICE SCHEMAS (for MedQA, MedMCQA)
+# MULTIPLE CHOICE SCHEMAS for MedQA and MedMCQA (one valid answer only)
 # ============================================================================
 
 # ============================================================================
@@ -333,6 +333,7 @@ class ComprehensiveMultipleChoice(BaseModel):
     
     class Config:
         extra = "forbid"
+
 
 
 # ============================================================================

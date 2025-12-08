@@ -5,6 +5,22 @@
 Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 
 ## Avancées de la team 
+Leila 8/12/25:
+Je me suis rendu compte d'une incoherence entre le prompt qui demande boxed{answer} et nos schemas. Re run tous les levels avec le nouveau prompt minimal 
+
+| Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
+|-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
+|  PUBMEDQA | Baseline (vanilla)      |Yaml   |strict-match|     0|exact_match|↑  |0.762 |±  |0.0191|
+|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.772 |±  |0.0187|
+|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.774 |±  |0.0187|
+|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+
+RESULTS DANS pubmedqa_new2
+
+
 Rania 8/12/25:
 -J'ai vérifié si la correctness etait liée a la confidence du modele, ca nest pas le cas. J'ai donc essaye d'utiliser un schema alternatif ou on doit donner la distribution de proba de chaque reponse et ensuite prendre la confidence comme etant cette proba. Les resultats n'etaient pas meilleurs
 -J'ai analysé les resultats obtenus avec medqa_4options_generation. Ils sont tous dans results/medqa/analysis/
