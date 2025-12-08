@@ -10,7 +10,7 @@ Each schema level provides different insights:
 - Level 5-6: Test flexibility and natural language handling
 """
 
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict
 from pydantic import BaseModel, Field, field_validator, constr
 
 
@@ -190,7 +190,25 @@ class MCQAnswerWithConfidence(BaseModel):
     class Config:
         extra = "forbid"
 
+class MCQAnswerWithConfidenceNew(BaseModel):
+    answer: Literal["A", "B", "C", "D"]
+    probabilities: Dict[Literal["A", "B", "C", "D"], float]  # must sum to 1.0
+    confidence: float  # should equal probabilities[answer]
 
+    @field_validator("probabilities")
+    def probs_sum_to_one(cls, probs):
+        total = sum(probs.values())
+        if abs(total - 1.0) > 1e-3:
+            raise ValueError("Probabilities must sum to 1.0")
+        return probs
+
+    @field_validator("confidence")
+    def confidence_matches_answer(cls, conf, info):
+        probs = info.data["probabilities"]
+        ans = info.data["answer"]
+        if abs(conf - probs[ans]) > 1e-3:
+            raise ValueError("Confidence must equal probability of the chosen answer")
+        return conf
 # ============================================================================
 # LEVEL 3: Answer with justification
 # ============================================================================
@@ -333,6 +351,7 @@ PUBMEDQA_SCHEMAS = {
 MULTIPLE_CHOICE_SCHEMAS = {
     "level1_strict": StrictMultipleChoice,
     "level2_confidence": MCQAnswerWithConfidence,
+    "level2_confidence_new": MCQAnswerWithConfidenceNew,
     "level3_justification": MCQAnswerWithJustification,
     "level4_reasoning": MultipleChoiceWithReasoning,
     "level5_elimination": MCQWithFullElimination,
@@ -390,6 +409,12 @@ SCHEMA_METADATA = {
         "description": "Answer with confidence score",
         "expected_insight": "Impact of numeric constraints",
         "schema_class": "MCQAnswerWithConfidence",
+    },
+    "mc_level2_confidence_new": {
+        "constraint_level": 2,
+        "description": "Answer with confidence score",
+        "expected_insight": "Impact of numeric constraints",
+        "schema_class": "MCQAnswerWithConfidenceNew",
     },
     "mc_level3_justification": {
         "constraint_level": 3,

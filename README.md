@@ -5,6 +5,9 @@
 Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 
 ## Avancées de la team 
+Rania 8/12/25:
+-J'ai vérifié si la correctness etait liée a la confidence du modele, ca nest pas le cas. J'ai donc essaye d'utiliser un schema alternatif ou on doit donner la distribution de proba de chaque reponse et ensuite prendre la confidence comme etant cette proba. Les resultats n'etaient pas meilleurs
+-J'ai analysé les resultats obtenus avec medqa_4options_generation. Ils sont tous dans results/medqa/analysis/
 
 Rania 4/12/25:
 - Tenter d'a'ameliorer la baseline de medqa4option generation. Pour cela j'ai essayé plusieurs prompts. Passé de 0.4713 à 0.4988 avec le prompt neutral (cf le preprocessing.py de la task medqa4option_generation).
