@@ -13,10 +13,10 @@ Je me suis rendu compte d'une incoherence entre le prompt qui demande boxed{answ
 |  PUBMEDQA | Baseline (vanilla)      |Yaml   |strict-match|     0|exact_match|↑  |0.762 |±  |0.0191|
 |           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.772 |±  |0.0187|
 |           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.774 |±  |0.0187|
-|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
-|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
-|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
-|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
+|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.772 |±  |0.0188|
+|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.774 |±  |0.0187|
+|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.774 |±  |0.0187|
+|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.776 |±  |0.0187|
 
 RESULTS DANS pubmedqa_new2
 
@@ -39,6 +39,8 @@ Rania 4/12/25:
 |           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0135|
 |           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.5852|±  |0.0138|
 |           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0136|
+
+
 Leila 1/12/25:
 - Re organisé les schemas pour pudmedqa et ajouter les schemas pour QCMs dans schemas/medical_qa_schemas.py
 - Run tous les levels et baseline pour pudmedqa et analyse des results dans results/pudmedqa/results_analysis.ipynb
@@ -58,16 +60,6 @@ NOTE :
 |           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
 |           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.548 |±  |0.0223|
 
-
-| Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
-|-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
-|  MEDQA    | Baseline (vanilla)      |Yaml   |strict-match|     0|exact_match|↑  |0.4713|±  |0.0140|
-|           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.0283|±  |0.0046|
-|           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.0283|±  |0.0046|
-|           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
-|           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
-|           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
-|           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |      |±  |      |
 
 
 COMMANDE POUR RUN :
