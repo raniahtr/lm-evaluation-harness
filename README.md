@@ -5,6 +5,9 @@
 Ismael Berrada, Leila Benjelloun, Rania Hatrouhou
 
 ## Avancées de la team 
+Ismael :
+
+
 Leila 8/12/25:
 Je me suis rendu compte d'une incoherence entre le prompt qui demande boxed{answer} et nos schemas. Re run tous les levels avec le nouveau prompt minimal 
 
