@@ -13,6 +13,7 @@ from .medical_qa_schemas import (
     AnswerWithReasoningAndConfidence,
     GroundedAnswer,
     FlexibleGroundedAnswer,
+    InvertedCoTAnswer,
     
     # Multiple Choice schemas (A/B/C/D)
     StrictMultipleChoice,
@@ -22,6 +23,7 @@ from .medical_qa_schemas import (
     MultipleChoiceWithReasoning,
     MCQWithFullElimination,
     ComprehensiveMultipleChoice,
+    MCQInvertedCoTAnswer,
     
     # Registry
     PUBMEDQA_SCHEMAS,
@@ -36,6 +38,7 @@ __all__ = [
     "AnswerWithReasoningAndConfidence",
     "GroundedAnswer",
     "FlexibleGroundedAnswer",
+    "InvertedCoTAnswer",
     "StrictMultipleChoice",
     "MCQAnswerWithConfidence",
     "MCQAnswerWithConfidenceNew",
@@ -43,6 +46,7 @@ __all__ = [
     "MultipleChoiceWithReasoning",
     "MCQWithFullElimination",
     "ComprehensiveMultipleChoice",
+    "MCQInvertedCoTAnswer",
     "PUBMEDQA_SCHEMAS",
     "MULTIPLE_CHOICE_SCHEMAS",
     "SCHEMA_METADATA",

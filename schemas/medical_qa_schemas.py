@@ -70,6 +70,26 @@ class AnswerWithReasoning(BaseModel):
 
 
 # ============================================================================
+# LEVEL_3_INVERTED - INVERTED CHAIN OF THOUGHT: Reasoning first, then answer
+# ============================================================================
+# Insight: Tests whether requiring reasoning before the answer (inverted CoT)
+#          affects model performance. Forces model to think through the problem
+#          before committing to an answer.
+
+class InvertedCoTAnswer(BaseModel):
+    """Inverted Chain of Thought for PubMedQA: Reasoning first, then answer."""
+    reasoning: constr(min_length=10, max_length=200) = Field(
+        description="Brief reasoning explaining the thought process before arriving at the answer."
+    )
+    answer: Literal["yes", "no", "maybe"] = Field(
+        description="The answer to the question, determined after reasoning."
+    )
+
+    class Config:
+        extra = "forbid"
+
+
+# ============================================================================
 # LEVEL 4: Answer with reasoning and confidence score
 # ============================================================================
 # Insight: 
@@ -90,6 +110,8 @@ class AnswerWithReasoningAndConfidence(BaseModel):
 
     class Config:
         extra = "forbid"
+
+
 
 
 # ============================================================================
@@ -224,6 +246,26 @@ class MCQAnswerWithJustification(BaseModel):
     class Config:
         extra = "forbid"
 
+# ============================================================================
+# LEVEL_3_INVERTED - INVERTED CHAIN OF THOUGHT: Reasoning first, then answer
+# ============================================================================
+# Insight: Tests whether requiring reasoning before the answer (inverted CoT)
+#          affects model performance for multiple choice questions. Forces model
+#          to think through the problem before committing to an answer.
+
+class MCQInvertedCoTAnswer(BaseModel):
+    """Inverted Chain of Thought for MCQ: Reasoning first, then answer."""
+    reasoning: str = Field(
+        min_length=20,
+        max_length=200,
+        description="Detailed reasoning explaining the thought process before arriving at the answer."
+    )
+    answer: Literal["A", "B", "C", "D"] = Field(
+        description="The multiple choice answer, determined after reasoning."
+    )
+
+    class Config:
+        extra = "forbid"
 
 # ============================================================================
 # LEVEL 4: Answer with reasoning and confidence score
@@ -248,6 +290,8 @@ class MultipleChoiceWithReasoning(BaseModel):
     
     class Config:
         extra = "forbid"
+
+
 
 # ============================================================================
 # LEVEL 5: Option Elimination
@@ -347,6 +391,7 @@ PUBMEDQA_SCHEMAS = {
     "level4_reasoning_confidence": AnswerWithReasoningAndConfidence,
     "level5_grounded": GroundedAnswer,
     "level6_flexible": FlexibleGroundedAnswer,
+    "inverted_cot": InvertedCoTAnswer,
 }
 
 MULTIPLE_CHOICE_SCHEMAS = {
@@ -357,6 +402,7 @@ MULTIPLE_CHOICE_SCHEMAS = {
     "level4_reasoning": MultipleChoiceWithReasoning,
     "level5_elimination": MCQWithFullElimination,
     "level6_comprehensive": ComprehensiveMultipleChoice,
+    "inverted_cot": MCQInvertedCoTAnswer,
 }
 
 # Schema metadata for evaluation tracking
