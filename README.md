@@ -17,6 +17,7 @@ Je me suis rendu compte d'une incoherence entre le prompt qui demande boxed{answ
 |           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.772 |±  |0.0187|
 |           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.774 |±  |0.0187|
 |           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.772 |±  |0.0188|
+|           | L3_inverted             |Yaml   |strict-match|     0|exact_match|↑  |0.772 |±  |0.0188|
 |           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.774 |±  |0.0187|
 |           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.774 |±  |0.0187|
 |           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.776 |±  |0.0187|
@@ -39,6 +40,7 @@ Rania 4/12/25:
 |           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.6214|±  |0.0136|
 |           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.6214|±  |0.0136|
 |           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.6127|±  |0.0137|
+|           | L3_inverted             |Yaml   |strict-match|     0|exact_match|↑  |0.5939|±  |0.0138|
 |           | L4                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0135|
 |           | L5                      |Yaml   |strict-match|     0|exact_match|↑  |0.5852|±  |0.0138|
 |           | L6                      |Yaml   |strict-match|     0|exact_match|↑  |0.6229|±  |0.0136|
