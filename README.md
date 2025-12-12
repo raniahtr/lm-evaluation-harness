@@ -35,7 +35,7 @@ Rania 4/12/25:
 | Task      |          Schema         |Version|   Filter   |n-shot|  Metric   |   |Value |   |Stderr|
 |-----------|-------------------------|-------|------------|-----:|-----------|---|-----:|---|-----:|
 |  MEDQA4OPTION | Baseline (initial prompt) |Yaml   |strict-match|     0|exact_match|↑  |0.4713|±  |0.0140|
-|           | Baseline (prompt mod.)  |Yaml   |strict-match|     0|exact_match|↑  |0.4988|±  |0.0140|
+|           | Baseline (prompt mod.)  |Yaml   |strict-match|     0|exact_match|↑  |0.5625|±  |0.0139|
 |           | L1                      |Yaml   |strict-match|     0|exact_match|↑  |0.6214|±  |0.0136|
 |           | L2                      |Yaml   |strict-match|     0|exact_match|↑  |0.6214|±  |0.0136|
 |           | L3                      |Yaml   |strict-match|     0|exact_match|↑  |0.6127|±  |0.0137|
