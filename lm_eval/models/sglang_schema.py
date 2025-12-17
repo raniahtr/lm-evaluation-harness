@@ -67,6 +67,23 @@ class SGLangSchemaLM(SGLangLM):
         base_url: Optional[str] = None,
         **kwargs,
     ):
+        """
+        Initialize schema-constrained SGLang model.
+        
+        Args:
+            pretrained: HuggingFace model identifier or path.
+            schema_model: Pydantic BaseModel class for structured output (recommended).
+            response_schema: JSON Schema as dict, JSON/YAML string, or file path.
+            schema_file: Path to JSON/YAML schema file.
+            validate_with_pydantic: Whether to validate outputs against schema_model.
+            strict_validation: If True, raise on validation failure; otherwise return raw text.
+            base_url: SGLang server URL for remote API mode (e.g., "http://localhost:31000").
+            **kwargs: Additional arguments passed to SGLangLM.
+        
+        Note:
+            Only one of schema_model, response_schema, or schema_file should be provided.
+            If base_url is provided, operates in remote API mode.
+        """
         self.schema_model = schema_model
         self.strict_validation = strict_validation
         self.validate_with_pydantic = bool(
@@ -113,7 +130,18 @@ class SGLangSchemaLM(SGLangLM):
     # Generation overrides
     # -------------------------------------------------------------------------
     def modify_gen_kwargs(self, kwargs: dict) -> dict:
-        """Attach `json_schema` so Engine enforces `sgl.json(...)` semantics."""
+        """
+        Modify generation kwargs to include JSON schema constraint.
+        
+        Attaches the `json_schema` parameter to sampling kwargs so that
+        SGLang's engine enforces structured output via `sgl.json(...)` semantics.
+        
+        Args:
+            kwargs: Generation keyword arguments to modify.
+            
+        Returns:
+            Updated kwargs dict with json_schema added if a schema is configured.
+        """
         updated = super().modify_gen_kwargs(kwargs)
         if self._json_schema_str and "json_schema" not in updated:
             updated["json_schema"] = self._json_schema_str
@@ -127,6 +155,20 @@ class SGLangSchemaLM(SGLangLM):
     def generate_until(
         self, requests, disable_tqdm: bool = False  # type: ignore[override]
     ):
+        """
+        Generate text completions for a list of requests until stop conditions.
+        
+        This method handles both local engine and remote API modes, applying
+        schema-constrained generation when configured. Outputs are optionally
+        validated against the Pydantic schema.
+        
+        Args:
+            requests: List of Instance objects containing prompts and generation kwargs.
+            disable_tqdm: Whether to disable the progress bar.
+            
+        Returns:
+            List of generated text strings, validated against schema if enabled.
+        """
         if self.use_remote_api:
             results = self._remote_generate_until(requests, disable_tqdm=disable_tqdm)
         else:
@@ -139,6 +181,16 @@ class SGLangSchemaLM(SGLangLM):
     # Remote backend helpers
     # -------------------------------------------------------------------------
     def _init_remote_backend(self, pretrained: str, kwargs: dict):
+        """
+        Initialize the model for remote API mode.
+        
+        Sets up the tokenizer and configuration for communicating with a
+        remote SGLang server instead of running the model locally.
+        
+        Args:
+            pretrained: HuggingFace model identifier for tokenizer initialization.
+            kwargs: Configuration dict containing batch_size, max_gen_toks, etc.
+        """
         from lm_eval.api.model import TemplateLM
 
         TemplateLM.__init__(self)
@@ -165,6 +217,16 @@ class SGLangSchemaLM(SGLangLM):
     ):
         """
         Initialize tokenizer for remote API mode.
+        
+        Loads the tokenizer from HuggingFace to handle encoding/decoding
+        locally while the model inference runs on the remote server.
+        
+        Args:
+            pretrained: HuggingFace model identifier or path.
+            trust_remote_code: Whether to trust remote code in the tokenizer.
+            
+        Returns:
+            AutoTokenizer instance for the specified model.
         """
         from transformers import AutoTokenizer
 
@@ -174,6 +236,12 @@ class SGLangSchemaLM(SGLangLM):
 
     @property
     def eot_token_id(self):
+        """
+        Get the end-of-text token ID.
+        
+        Returns:
+            The EOS token ID from the tokenizer, or None if not available.
+        """
         if self.use_remote_api:
             if hasattr(self.tokenizer, "eos_token_id"):
                 return self.tokenizer.eos_token_id
@@ -184,6 +252,12 @@ class SGLangSchemaLM(SGLangLM):
 
     @property
     def prefix_token_id(self):
+        """
+        Get the prefix (beginning-of-sequence) token ID.
+        
+        Returns:
+            Custom prefix token if set, otherwise BOS token, or EOT as fallback.
+        """
         if self.use_remote_api:
             if self.custom_prefix_token_id is not None:
                 return self.custom_prefix_token_id
@@ -194,6 +268,12 @@ class SGLangSchemaLM(SGLangLM):
 
     @property
     def max_length(self):
+        """
+        Get the maximum context length supported by the model.
+        
+        Returns:
+            Maximum number of tokens the model can process (default: 2048).
+        """
         if self.use_remote_api:
             if self._max_length:
                 return self._max_length
@@ -206,6 +286,12 @@ class SGLangSchemaLM(SGLangLM):
 
     @property
     def max_gen_toks(self):
+        """
+        Get the maximum number of tokens to generate.
+        
+        Returns:
+            Maximum generation length (default: 256 for remote API mode).
+        """
         if self.use_remote_api:
             return self._max_gen_toks
         return super().max_gen_toks
@@ -230,6 +316,18 @@ class SGLangSchemaLM(SGLangLM):
         add_special_tokens: bool = False,
         truncation: bool = False,
     ):
+        """
+        Encode text string(s) into token IDs.
+        
+        Args:
+            string: Single string or list of strings to tokenize.
+            left_truncate_len: If set, keep only the last N tokens.
+            add_special_tokens: Whether to add BOS/EOS tokens.
+            truncation: Whether to truncate to model max length.
+            
+        Returns:
+            List of token IDs, or list of lists for batch input.
+        """
         if not self.use_remote_api:
             return super().tok_encode(
                 string,
@@ -267,6 +365,15 @@ class SGLangSchemaLM(SGLangLM):
         return encoding
 
     def tok_decode(self, tokens: List[int]) -> str:
+        """
+        Decode token IDs back into a text string.
+        
+        Args:
+            tokens: List of token IDs to decode.
+            
+        Returns:
+            Decoded text string.
+        """
         if self.use_remote_api and hasattr(self.tokenizer, "decode"):
             return self.tokenizer.decode(tokens)
         return super().tok_decode(tokens)
@@ -274,6 +381,19 @@ class SGLangSchemaLM(SGLangLM):
     def _remote_generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
+        """
+        Generate completions using the remote SGLang server API.
+        
+        Handles batching, context truncation, and schema-constrained generation
+        when communicating with a remote SGLang server via HTTP.
+        
+        Args:
+            requests: List of Instance objects with prompts and generation kwargs.
+            disable_tqdm: Whether to disable the progress bar.
+            
+        Returns:
+            List of generated text strings in the original request order.
+        """
         res: List[str] = []
         context, all_gen_kwargs = zip(*(req.args for req in requests))
         context_encoding = self.tok_encode(
@@ -385,6 +505,23 @@ class SGLangSchemaLM(SGLangLM):
         top_logprobs_num: int = 1,
         logprob_start_len: int = -1,
     ):
+        """
+        Core generation method dispatching to local engine or remote API.
+        
+        Sends generation requests to the appropriate backend and handles
+        response parsing, error recovery, and logging.
+        
+        Args:
+            requests: List of token ID sequences to generate from.
+            generate: If True, generate new tokens; if False, compute logprobs only.
+            sampling_params: Sampling configuration (temperature, top_p, etc.).
+            return_logprob: Whether to return token log probabilities.
+            top_logprobs_num: Number of top logprobs to return per position.
+            logprob_start_len: Position to start returning logprobs from.
+            
+        Returns:
+            List of response dicts containing 'text' and optional 'meta_info'.
+        """
         if not self.use_remote_api:
             return super()._model_generate(
                 requests=requests,
@@ -461,7 +598,7 @@ class SGLangSchemaLM(SGLangLM):
                 error_detail = ""
                 try:
                     error_detail = response.text
-                except:
+                except Exception:
                     pass
                 eval_logger.error(
                     f"Remote SGLang request failed with {response.status_code}: {exc}\n"
@@ -487,6 +624,25 @@ class SGLangSchemaLM(SGLangLM):
         response_schema: Optional[Union[Dict, str]],
         schema_file: Optional[str],
     ) -> Optional[Dict]:
+        """
+        Resolve schema from various input formats to a JSON Schema dict.
+        
+        Handles multiple schema input methods in priority order:
+        1. Pydantic BaseModel class (converted via model_json_schema())
+        2. Schema file path (JSON or YAML)
+        3. Direct dict, JSON string, YAML string, or file path string
+        
+        Args:
+            schema_model: Pydantic BaseModel class (highest priority).
+            response_schema: Dict, JSON/YAML string, or file path.
+            schema_file: Explicit path to schema file.
+            
+        Returns:
+            JSON Schema as dict, or None if no schema provided.
+            
+        Raises:
+            ValueError: If schema format is invalid or cannot be parsed.
+        """
         if schema_model:
             if BaseModel is None or not issubclass(schema_model, BaseModel):
                 raise ValueError("schema_model must inherit from pydantic.BaseModel")
@@ -646,7 +802,7 @@ class SGLangSchemaLM(SGLangLM):
             return validated.model_dump_json()
         except ValidationError as exc:
             # Check if JSON is incomplete (common issue with schema-constrained generation)
-            if json_text.strip() in ["{", "[", "{", "["] or (
+            if json_text.strip() in ["{", "["] or (
                 json_text.strip().startswith("{") and not json_text.strip().endswith("}")
             ):
                 eval_logger.warning(
@@ -659,7 +815,7 @@ class SGLangSchemaLM(SGLangLM):
         except json.JSONDecodeError as exc:
             # JSON parsing failed - this shouldn't happen with SGLang's structured output
             # but we handle it gracefully
-            if json_text.strip() in ["{", "[", "{", "["]:
+            if json_text.strip() in ["{", "["]:
                 message = f"Incomplete JSON output (cut off): {json_text}"
             else:
                 message = f"Invalid JSON format: {exc}. Raw text: {text[:100]}..."
@@ -693,7 +849,7 @@ class SGLangSchemaLM(SGLangLM):
         text_cleaned = text.strip()
         
         # If text is just opening brace with whitespace, it's incomplete
-        if text_cleaned in ["{", "[", "{", "["] or (
+        if text_cleaned in ["{", "["] or (
             text_cleaned.startswith("{") and not text_cleaned.endswith("}") and 
             len(text_cleaned.replace("\n", "").replace(" ", "")) < 10
         ):
@@ -759,6 +915,28 @@ class SGLangSchemaLM(SGLangLM):
     def create_from_arg_string(
         cls, arg_string: str, additional_config: Optional[dict] = None
     ):
+        """
+        Create model instance from CLI argument string.
+        
+        Parses comma-separated key=value arguments and handles special cases:
+        - Boolean conversion for validate_with_pydantic, strict_validation
+        - Dynamic import of schema_model from dotted module path
+        
+        Args:
+            arg_string: Comma-separated arguments (e.g., "pretrained=model,base_url=http://...").
+            additional_config: Optional dict to merge with parsed args.
+            
+        Returns:
+            Configured SGLangSchemaLM instance.
+            
+        Raises:
+            ValueError: If schema_model path cannot be imported.
+            
+        Example:
+            model = SGLangSchemaLM.create_from_arg_string(
+                "pretrained=meta-llama/Llama-2-7b,schema_model=schemas.MySchema"
+            )
+        """
         args = simple_parse_args_string(arg_string)
         if additional_config:
             args.update(additional_config)
