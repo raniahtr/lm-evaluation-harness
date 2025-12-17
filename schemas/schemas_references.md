@@ -22,7 +22,7 @@
 
 ## Usage Examples
 
-### Using Pydantic Model (Recommended)
+### Using Pydantic Model 
 
 ```bash
 # Level 1: Strict
@@ -39,18 +39,4 @@ python3 -m lm_eval \
   --tasks pubmedqa_generation \
   --output_path ./results/pubmedqa_level3.json
 ```
-
-### Using JSON Schema File ( Not yet used)
-
-First, export schemas:
-```bash
-cd schemas
-python3 export_schemas.py
-```
-
-Then use:
-```bash
---model_args schema_file=schemas/json_schemas/pubmedqa_level1_strict.json
-```
-
 
