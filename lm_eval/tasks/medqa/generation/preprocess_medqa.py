@@ -8,7 +8,7 @@ def doc_to_text_old(doc) -> str:
     answers = "".join((f"({k}) {v}\n") for k, v in option_choices.items())
     return f"Q: {doc['sent1']}\n{answers}" + "A: Provide the final answer enclosed in boxed{the_answer}."
 
-def doc_to_text_medqa_neutral(doc, use_schema: bool = True) -> str:
+def doc_to_text_medqa_neutral(doc, is_schema_mode_active: bool = True) -> str:
     option_choices = {
         "A": doc["ending0"],
         "B": doc["ending1"],
@@ -16,7 +16,7 @@ def doc_to_text_medqa_neutral(doc, use_schema: bool = True) -> str:
         "D": doc["ending3"],
     }
     answers = "".join((f"({k}) {v}\n" for k, v in option_choices.items()))
-    if use_schema:
+    if is_schema_mode_active:
         return (
             f"Q: {doc['sent1']}\n"
             f"{answers}\n"

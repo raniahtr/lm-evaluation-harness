@@ -293,10 +293,10 @@ class EvaluationTracker:
                     )
 
             except Exception as e:
-                eval_logger.error("Could not save results aggregated")
-                eval_logger.error(f"Exception type: {type(e).__name__}")
-                eval_logger.error(f"Exception message: {str(e)}")
-                eval_logger.error(f"Exception details: {repr(e)}", exc_info=True)
+                eval_logger.warning("Could not save results aggregated")
+                eval_logger.warning(f"Exception type: {type(e).__name__}")
+                eval_logger.warning(f"Exception message: {str(e)}")
+                eval_logger.warning(f"Exception details: {repr(e)}", exc_info=True)
         else:
             eval_logger.info(
                 "Output path not provided, skipping saving results aggregated"

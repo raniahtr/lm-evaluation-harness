@@ -17,8 +17,8 @@ from pydantic import BaseModel, Field, field_validator, constr
 # ============================================================================
 # LEVEL 1: Strict Answer Only
 # ============================================================================
-# Insight: Tests pure structural compliance - can the model output valid JSON
-#          with exact enum values? This is the baseline constraint test.
+# Insight: Baseline test for pure structural compliance. Measures if model can output
+#          valid JSON with exact enum values without additional fields.
 
 class StrictAnswerOnly(BaseModel):
     """Level 1: Minimal constraint - only the answer, strict enum."""
@@ -33,8 +33,8 @@ class StrictAnswerOnly(BaseModel):
 # ============================================================================
 # LEVEL 2: Answer with confidence score 
 # ============================================================================
-# Insight: Tests if adding required fields and type constraints (numbers, arrays)
-#          affects performance. Measures impact of structural complexity.
+# Insight: Tests impact of adding numeric type constraints. Measures whether requiring
+#          a confidence score (0.0-1.0) affects model performance and calibration.
 
 class StructuredAnswer(BaseModel):
     """Level 2: Answer with confidence score. """
@@ -54,7 +54,8 @@ class StructuredAnswer(BaseModel):
 # ============================================================================
 # LEVEL 3: Answer with required brief reasoning
 # ============================================================================
-# Insight: 
+# Insight: Tests impact of requiring text reasoning (10-200 chars). Measures whether
+#          forcing models to explain their answers improves accuracy or changes behavior.
 
 class AnswerWithReasoning(BaseModel):
     """Level 3 (PubMedQA): Answer with required brief reasoning."""
@@ -72,9 +73,8 @@ class AnswerWithReasoning(BaseModel):
 # ============================================================================
 # LEVEL_3_INVERTED - INVERTED CHAIN OF THOUGHT: Reasoning first, then answer
 # ============================================================================
-# Insight: Tests whether requiring reasoning before the answer (inverted CoT)
-#          affects model performance. Forces model to think through the problem
-#          before committing to an answer.
+# Insight: Tests inverted chain-of-thought: requiring reasoning before the answer.
+#          Measures if forcing models to think through problems first improves accuracy.
 
 class InvertedCoTAnswer(BaseModel):
     """Inverted Chain of Thought for PubMedQA: Reasoning first, then answer."""
@@ -92,7 +92,8 @@ class InvertedCoTAnswer(BaseModel):
 # ============================================================================
 # LEVEL 4: Answer with reasoning and confidence score
 # ============================================================================
-# Insight: 
+# Insight: Combines reasoning with confidence calibration. Tests whether requiring both
+#          structured explanations and explicit confidence scores improves performance.
 
 class AnswerWithReasoningAndConfidence(BaseModel):
     """Level 4 (PubMedQA): Answer with reasoning and confidence."""
@@ -117,7 +118,8 @@ class AnswerWithReasoningAndConfidence(BaseModel):
 # ============================================================================
 # LEVEL 5: Answer grounded in key evidence from the abstract
 # ============================================================================
-# Insight: 
+# Insight: Requires evidence extraction (1-5 key pieces) plus extended reasoning (10-500 chars).
+#          Tests if grounding answers in explicit evidence improves accuracy and trustworthiness.
 
 class GroundedAnswer(BaseModel):
     """Level 5 (PubMedQA): Answer grounded in key evidence from the abstract."""
@@ -145,7 +147,8 @@ class GroundedAnswer(BaseModel):
 # ============================================================================
 # LEVEL 6: Flexible Answer with optional extras
 # ============================================================================
-# Insight: 
+# Insight: Tests flexibility: all fields optional except answer, and extra fields allowed.
+#          Measures whether reduced constraints improve or degrade model performance.
 
 class FlexibleGroundedAnswer(BaseModel):
     """Level 6 (PubMedQA): Core fields plus optional extras allowed."""
@@ -180,7 +183,8 @@ class FlexibleGroundedAnswer(BaseModel):
 # ============================================================================
 # LEVEL 1: Strict Multiple Choice
 # ============================================================================
-# Insight: Provides a baseline by restricting output to a fixed set of valid multiple choice answers (A/B/C/D) only; tests pure structural compliance and model's ability to produce valid JSON.
+# Insight: Baseline for multiple choice: strict enum (A/B/C/D) only. Tests pure structural
+#          compliance and model's ability to produce valid JSON with exact enum values.
 class StrictMultipleChoice(BaseModel):
     """Level 1 for MC: Strict enum for multiple choice answers."""
     answer: Literal["A", "B", "C", "D"] = Field(
@@ -194,9 +198,8 @@ class StrictMultipleChoice(BaseModel):
 # ============================================================================
 # LEVEL 2: Answer with confidence score
 # ============================================================================
-# Insight: Adds numeric "confidence" to strict answer for richer, quantitative outputs and error 
-#diagnosis. Useful to measure whether LMs that can express probabilistic beliefs produce 
-#better-calibrated answers.
+# Insight: Adds confidence score (0.0-1.0) to strict answer. Tests whether requiring
+#          probabilistic beliefs improves answer calibration and error diagnosis.
 
 class MCQAnswerWithConfidence(BaseModel):
     """Level 2 for MC: Answer with confidence score."""
@@ -212,30 +215,13 @@ class MCQAnswerWithConfidence(BaseModel):
     class Config:
         extra = "forbid"
 
-class MCQAnswerWithConfidenceNew(BaseModel):
-    answer: Literal["A", "B", "C", "D"]
-    probabilities: Dict[Literal["A", "B", "C", "D"], float]  # must sum to 1.0
-    confidence: float  # should equal probabilities[answer]
 
-    @field_validator("probabilities")
-    def probs_sum_to_one(cls, probs):
-        total = sum(probs.values())
-        if abs(total - 1.0) > 1e-3:
-            raise ValueError("Probabilities must sum to 1.0")
-        return probs
 
-    @field_validator("confidence")
-    def confidence_matches_answer(cls, conf, info):
-        probs = info.data["probabilities"]
-        ans = info.data["answer"]
-        if abs(conf - probs[ans]) > 1e-3:
-            raise ValueError("Confidence must equal probability of the chosen answer")
-        return conf
 # ============================================================================
 # LEVEL 3: Answer with justification
 # ============================================================================
-# Insight: Adds "justification" field to provide detailed explanation for the answer.
-#          Useful to measure whether LMs can produce well-reasoned answers.
+# Insight: Adds justification field (max 200 chars) to explain the answer. Tests whether
+#          requiring explanations improves model reasoning quality and answer accuracy.
 class MCQAnswerWithJustification(BaseModel):
     """Level 3 for MC: Answer with justification."""
     answer: Literal["A", "B", "C", "D"] = Field(
@@ -249,16 +235,13 @@ class MCQAnswerWithJustification(BaseModel):
 # ============================================================================
 # LEVEL_3_INVERTED - INVERTED CHAIN OF THOUGHT: Reasoning first, then answer
 # ============================================================================
-# Insight: Tests whether requiring reasoning before the answer (inverted CoT)
-#          affects model performance for multiple choice questions. Forces model
-#          to think through the problem before committing to an answer.
+# Insight: Inverted CoT for MCQ: reasoning before answer. Tests if requiring models to
+#          think through problems first improves multiple choice accuracy.
 
 class MCQInvertedCoTAnswer(BaseModel):
     """Inverted Chain of Thought for MCQ: Reasoning first, then answer."""
-    reasoning: str = Field(
-        min_length=20,
-        max_length=200,
-        description="Detailed reasoning explaining the thought process before arriving at the answer."
+    reasoning: constr(min_length=20, max_length=200) = Field(
+        description="Brief reasoning explaining the thought process before arriving at the answer."
     )
     answer: Literal["A", "B", "C", "D"] = Field(
         description="The multiple choice answer, determined after reasoning."
@@ -270,17 +253,15 @@ class MCQInvertedCoTAnswer(BaseModel):
 # ============================================================================
 # LEVEL 4: Answer with reasoning and confidence score
 # ============================================================================
-# Insight: Adds "reasoning" and 'confidence' field.
-#          Useful to measure whether the two options combine well.
+# Insight: Combines reasoning (min 20 chars) with confidence score. Tests whether requiring
+#          both substantive explanations and explicit confidence calibration improves performance.
 class MultipleChoiceWithReasoning(BaseModel):
-    """Level 4 for MC: Answer with required reasonin and confidence score."""
+    """Level 4 for MC: Answer with required reasoning and confidence score."""
     answer: Literal["A", "B", "C", "D"] = Field(
         description="The multiple choice answer"
     )
-    reasoning: str = Field(
-        min_length=20,
-        max_length=200,
-        description="Detailed reasoning explaining why this answer is correct"
+    reasoning: constr(min_length=20, max_length=200) = Field(
+        description="Brief reasoning explaining why this answer is correct"
     )
     confidence: float = Field(
         ge=0.0,
@@ -296,8 +277,8 @@ class MultipleChoiceWithReasoning(BaseModel):
 # ============================================================================
 # LEVEL 5: Option Elimination
 # ============================================================================
-# Insight: Adds "eliminated" field to provide detailed explanation for the answer.
-#          schema is per-option elimination : for every eliminated option, we have structured reasoning.
+# Insight: Requires elimination of 3 incorrect options with structured reasoning for each.
+#          Tests whether forcing models to explicitly rule out wrong answers improves accuracy.
 
 class OptionElimination(BaseModel):
     option: Literal["A", "B", "C", "D"]
@@ -321,6 +302,7 @@ class MCQWithFullElimination(BaseModel):
         extra = "forbid"
 
     @field_validator("eliminated")
+    @classmethod
     def check_three_unique_eliminations(cls, eliminated: List[OptionElimination]):
         """
         Ensure:
@@ -347,17 +329,16 @@ class MCQWithFullElimination(BaseModel):
 # ============================================================================
 # LEVEL 6: Comprehensive Multiple Choice
 # ============================================================================
-# Insight: Very dense structured output for medical diagnosis.
+# Insight: Maximum complexity: reasoning, confidence, key concepts, and differential diagnosis.
+#          Tests whether comprehensive structured outputs improve medical diagnosis accuracy.
 
 class ComprehensiveMultipleChoice(BaseModel):
     """Level 6 for MC: Full structured response for medical diagnosis."""
     answer: Literal["A", "B", "C", "D"] = Field(
         description="The multiple choice answer"
     )
-    reasoning: str = Field(
-        min_length=20,
-        max_length=500,
-        description="Detailed reasoning"
+    reasoning: constr(min_length=20, max_length=500) = Field(
+        description="Reasoning explaining why this answer is correct."
     )
     confidence: float = Field(
         ge=0.0,
@@ -397,7 +378,6 @@ PUBMEDQA_SCHEMAS = {
 MULTIPLE_CHOICE_SCHEMAS = {
     "level1_strict": StrictMultipleChoice,
     "level2_confidence": MCQAnswerWithConfidence,
-    "level2_confidence_new": MCQAnswerWithConfidenceNew,
     "level3_justification": MCQAnswerWithJustification,
     "level4_reasoning": MultipleChoiceWithReasoning,
     "level5_elimination": MCQWithFullElimination,

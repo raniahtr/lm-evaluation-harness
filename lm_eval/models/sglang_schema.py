@@ -38,6 +38,12 @@ if TYPE_CHECKING:
 else:
     _PydanticBaseModel = object  # Dummy type for runtime when Pydantic not installed
 
+# Constants for JSON validation and logging
+_INCOMPLETE_JSON_LENGTH_THRESHOLD = 100  # Max length to consider JSON incomplete
+_MINIMAL_JSON_LENGTH_THRESHOLD = 10  # Max length for minimal/incomplete JSON (just opening brace)
+_TEXT_PREVIEW_LENGTH = 200  # Length for text/schema previews in logs
+_ERROR_PREVIEW_LENGTH = 100  # Length for error message previews
+
 
 @register_model("sglang-schema")
 class SGLangSchemaLM(SGLangLM):
@@ -65,6 +71,7 @@ class SGLangSchemaLM(SGLangLM):
         validate_with_pydantic: bool = True,
         strict_validation: bool = False,
         base_url: Optional[str] = None,
+        request_timeout: Optional[int] = None,
         **kwargs,
     ):
         """
@@ -78,12 +85,27 @@ class SGLangSchemaLM(SGLangLM):
             validate_with_pydantic: Whether to validate outputs against schema_model.
             strict_validation: If True, raise on validation failure; otherwise return raw text.
             base_url: SGLang server URL for remote API mode (e.g., "http://localhost:31000").
+            request_timeout: HTTP request timeout in seconds. If None, defaults to 60s for
+                schema-constrained requests or 30s otherwise.
             **kwargs: Additional arguments passed to SGLangLM.
         
         Note:
             Only one of schema_model, response_schema, or schema_file should be provided.
             If base_url is provided, operates in remote API mode.
         """
+        # Validate that only one schema input is provided
+        schema_inputs = [
+            (schema_model, "schema_model"),
+            (response_schema, "response_schema"),
+            (schema_file, "schema_file"),
+        ]
+        provided = [name for value, name in schema_inputs if value is not None]
+        if len(provided) > 1:
+            raise ValueError(
+                f"Only one schema input should be provided, but multiple were given: {', '.join(provided)}. "
+                f"Please provide either schema_model, response_schema, or schema_file, but not multiple."
+            )
+        
         self.schema_model = schema_model
         self.strict_validation = strict_validation
         self.validate_with_pydantic = bool(
@@ -91,6 +113,13 @@ class SGLangSchemaLM(SGLangLM):
         )
         self.base_url = base_url or kwargs.pop("base_url", None)
         self.use_remote_api = self.base_url is not None
+        
+        # Set timeout: higher default for schema-constrained generation
+        if request_timeout is None:
+            # Use longer timeout if schema is provided (complex schemas may need more time)
+            self.request_timeout = 60 if (schema_model or response_schema or schema_file) else 30
+        else:
+            self.request_timeout = request_timeout
 
         if self.schema_model and BaseModel is None:
             raise ValueError(
@@ -500,10 +529,12 @@ class SGLangSchemaLM(SGLangLM):
         self,
         requests: List[List[int]] = None,
         generate: bool = False,
-        sampling_params: Union[List[Dict], Dict, None] = None,
+        max_tokens: int = None,
+        stop: Optional[List[str]] = None,
         return_logprob: bool = False,
         top_logprobs_num: int = 1,
         logprob_start_len: int = -1,
+        **kwargs,
     ):
         """
         Core generation method dispatching to local engine or remote API.
@@ -514,10 +545,12 @@ class SGLangSchemaLM(SGLangLM):
         Args:
             requests: List of token ID sequences to generate from.
             generate: If True, generate new tokens; if False, compute logprobs only.
-            sampling_params: Sampling configuration (temperature, top_p, etc.).
+            max_tokens: Maximum number of tokens to generate.
+            stop: List of stop sequences.
             return_logprob: Whether to return token log probabilities.
             top_logprobs_num: Number of top logprobs to return per position.
             logprob_start_len: Position to start returning logprobs from.
+            **kwargs: Additional sampling parameters.
             
         Returns:
             List of response dicts containing 'text' and optional 'meta_info'.
@@ -526,17 +559,31 @@ class SGLangSchemaLM(SGLangLM):
             return super()._model_generate(
                 requests=requests,
                 generate=generate,
-                sampling_params=sampling_params,
+                max_tokens=max_tokens,
+                stop=stop,
                 return_logprob=return_logprob,
                 top_logprobs_num=top_logprobs_num,
                 logprob_start_len=logprob_start_len,
+                **kwargs,
             )
 
         import requests as http_requests
 
+        # Convert to sampling_params for remote API
         if not generate:
-            sampling_params = sampling_params if sampling_params else {}
-            sampling_params.update({"temperature": 0, "max_new_tokens": 1})
+            sampling_params = {"temperature": 0, "max_new_tokens": 1}
+            sampling_params.update(kwargs)
+        else:
+            # Build sampling_params from max_tokens, stop, and kwargs
+            sampling_params = {}
+            if max_tokens is not None:
+                sampling_params["max_new_tokens"] = max_tokens
+            if stop:
+                sampling_params["stop"] = stop
+            sampling_params.update(kwargs)
+            # Apply modify_gen_kwargs for schema support
+            sampling_params = self.modify_gen_kwargs(sampling_params)
+        
         if not isinstance(sampling_params, List):
             sampling_params = [sampling_params] * len(requests)
 
@@ -558,8 +605,8 @@ class SGLangSchemaLM(SGLangLM):
                     f"Sending request with json_schema (length={len(sp.get('json_schema', ''))}), "
                     f"max_new_tokens={sp.get('max_new_tokens')}, stop={sp.get('stop', 'None')}"
                 )
-                # Log first 200 chars of schema for debugging
-                schema_preview = sp.get('json_schema', '')[:200]
+                # Log first N chars of schema for debugging
+                schema_preview = sp.get('json_schema', '')[:_TEXT_PREVIEW_LENGTH]
                 eval_logger.debug(f"json_schema preview: {schema_preview}...")
             elif self._json_schema_str:
                 # This shouldn't happen - schema should be in kwargs
@@ -573,21 +620,21 @@ class SGLangSchemaLM(SGLangLM):
                     f"{self.base_url}/generate",
                     json=payload,
                     headers={"Content-Type": "application/json"},
-                    timeout=30,
+                    timeout=self.request_timeout,
                 )
                 response.raise_for_status()
                 result = response.json()
                 
                 # Log output for debugging incomplete JSON
                 if self._json_schema_str and result.get("text"):
-                    text_preview = result["text"][:200]
+                    text_preview = result["text"][:_TEXT_PREVIEW_LENGTH]
                     text_length = len(result.get("text", ""))
                     eval_logger.info(
                         f"Received output (length={text_length}): {text_preview}..."
                     )
                     # Check if JSON is incomplete (just opening brace with whitespace)
                     text_stripped = result.get("text", "").strip()
-                    if text_stripped.startswith("{") and not text_stripped.endswith("}") and text_length < 100:
+                    if text_stripped.startswith("{") and not text_stripped.endswith("}") and text_length < _INCOMPLETE_JSON_LENGTH_THRESHOLD:
                         eval_logger.warning(
                             f"Incomplete JSON output detected! Full text: {result.get('text', '')}"
                         )
@@ -599,6 +646,8 @@ class SGLangSchemaLM(SGLangLM):
                 try:
                     error_detail = response.text
                 except Exception:
+                    # Best-effort attempt: if we can't get error details (e.g., response.text
+                    # doesn't exist or raises), continue with empty error_detail
                     pass
                 eval_logger.error(
                     f"Remote SGLang request failed with {response.status_code}: {exc}\n"
@@ -807,7 +856,7 @@ class SGLangSchemaLM(SGLangLM):
             ):
                 eval_logger.warning(
                     f"Incomplete JSON from model (likely cut off): {repr(json_text)}. "
-                    f"Raw text: {text[:100]}..."
+                    f"Raw text: {text[:_ERROR_PREVIEW_LENGTH]}..."
                 )
                 message = f"Incomplete JSON output: {json_text}"
             else:
@@ -818,7 +867,7 @@ class SGLangSchemaLM(SGLangLM):
             if json_text.strip() in ["{", "["]:
                 message = f"Incomplete JSON output (cut off): {json_text}"
             else:
-                message = f"Invalid JSON format: {exc}. Raw text: {text[:100]}..."
+                message = f"Invalid JSON format: {exc}. Raw text: {text[:_ERROR_PREVIEW_LENGTH]}..."
         except Exception as exc:  # pragma: no cover - defensive
             message = f"Unexpected validation error: {exc}"
 
@@ -851,10 +900,10 @@ class SGLangSchemaLM(SGLangLM):
         # If text is just opening brace with whitespace, it's incomplete
         if text_cleaned in ["{", "["] or (
             text_cleaned.startswith("{") and not text_cleaned.endswith("}") and 
-            len(text_cleaned.replace("\n", "").replace(" ", "")) < 10
+            len(text_cleaned.replace("\n", "").replace(" ", "")) < _MINIMAL_JSON_LENGTH_THRESHOLD
         ):
             eval_logger.warning(
-                f"Incomplete JSON detected: {repr(text[:100])}. "
+                f"Incomplete JSON detected: {repr(text[:_ERROR_PREVIEW_LENGTH])}. "
                 f"This may indicate generation was cut off or model got stuck."
             )
             # Return as-is, validation will handle the error
@@ -876,33 +925,43 @@ class SGLangSchemaLM(SGLangLM):
             r'```\s*(.*?)```',           # ```...``` (generic, no newlines)
         ]
         
+        # Collect all unique extracted strings first to avoid redundant parsing
+        extracted_candidates = set()
         for pattern in markdown_patterns:
             match = re.search(pattern, text, re.DOTALL)
             if match:
                 extracted = match.group(1).strip()
-                try:
-                    json.loads(extracted)
-                    return extracted
-                except json.JSONDecodeError:
-                    continue
+                extracted_candidates.add(extracted)
         
-        # Try finding JSON object or array in text using balanced braces/brackets
-        # This handles cases where JSON is embedded in other text
-        json_obj_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', text, re.DOTALL)
-        if json_obj_match:
+        # Validate each unique candidate once
+        for extracted in extracted_candidates:
             try:
-                json.loads(json_obj_match.group(0))
-                return json_obj_match.group(0)
+                json.loads(extracted)
+                return extracted
             except json.JSONDecodeError:
-                pass
+                continue
         
-        json_arr_match = re.search(r'\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]', text, re.DOTALL)
-        if json_arr_match:
+        # Try finding JSON object or array in text using balanced bracket counting
+        # This handles deeply nested JSON correctly using json.JSONDecoder.raw_decode()
+        # Find the first opening brace or bracket
+        for start_char, end_char in [('{', '}'), ('[', ']')]:
+            start_pos = text.find(start_char)
+            if start_pos == -1:
+                continue
+            
+            # Use json.JSONDecoder.raw_decode() to parse from the start position
+            # This correctly handles any level of nesting
+            decoder = json.JSONDecoder()
             try:
-                json.loads(json_arr_match.group(0))
-                return json_arr_match.group(0)
-            except json.JSONDecodeError:
-                pass
+                # raw_decode returns (parsed_object, end_position)
+                # It validates the JSON and tells us where it ends
+                parsed_obj, end_pos = decoder.raw_decode(text, start_pos)
+                # Extract the JSON substring
+                json_str = text[start_pos:end_pos]
+                return json_str
+            except (json.JSONDecodeError, ValueError):
+                # If parsing fails, continue to next attempt
+                continue
         
         # If all extraction attempts fail, return original text
         # (validation will fail, but we preserve the original for debugging)
@@ -964,9 +1023,26 @@ class SGLangSchemaLM(SGLangLM):
                 module = importlib.import_module(module_path)
                 args["schema_model"] = getattr(module, class_name)
                 eval_logger.info(f"Imported schema model: {schema_model_str}")
-            except (ImportError, AttributeError, ValueError) as e:
+            except ImportError as e:
                 raise ValueError(
-                    f"Failed to import schema_model from '{schema_model_str}': {e}. "
+                    f"Failed to import module '{module_path}' from schema_model '{schema_model_str}': {e}. "
+                    f"This may indicate a missing module, incorrect path, or import dependency issue. "
+                    f"Expected format: 'module.path.ClassName'"
+                ) from e
+            except AttributeError as e:
+                raise ValueError(
+                    f"Class '{class_name}' not found in module '{module_path}' from schema_model '{schema_model_str}': {e}. "
+                    f"Verify the class name is correct. Expected format: 'module.path.ClassName'"
+                ) from e
+            except ValueError as e:
+                # This could be from rsplit if there's no dot in the path
+                if "." not in schema_model_str:
+                    raise ValueError(
+                        f"Invalid schema_model format '{schema_model_str}': missing module path separator. "
+                        f"Expected format: 'module.path.ClassName'"
+                    ) from e
+                raise ValueError(
+                    f"Invalid schema_model format '{schema_model_str}': {e}. "
                     f"Expected format: 'module.path.ClassName'"
                 ) from e
 

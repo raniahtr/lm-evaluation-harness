@@ -6,14 +6,6 @@ This script generates JSON Schema files from Pydantic models,
 making it easy to use schemas via the schema_file argument.
 """
 
-#!/usr/bin/env python3
-"""
-Export Pydantic schemas to JSON Schema files for CLI usage.
-
-This script generates JSON Schema files from Pydantic models,
-making it easy to use schemas via the schema_file argument.
-"""
-
 import json
 import sys
 from pathlib import Path

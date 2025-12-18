@@ -18,7 +18,7 @@ def doc_to_text(doc) -> str:
     prompt += "\nA: Provide the final answer enclosed in boxed{the_answer}."
     return prompt
 
-def doc_to_text_medmcqa(doc, use_schema: bool = True) -> str:
+def doc_to_text_medmcqa(doc, is_schema_mode_active: bool = True) -> str:
     choices = [doc["opa"], doc["opb"], doc["opc"], doc["opd"]]
     option_choices = {
         "A": choices[0],
@@ -29,7 +29,7 @@ def doc_to_text_medmcqa(doc, use_schema: bool = True) -> str:
 
     answers = "".join(f"({k}) {v}\n" for k, v in option_choices.items())
 
-    if use_schema:
+    if is_schema_mode_active:
         # Schema-constrained prompt: no explicit format instructions
         return (
             f"Q: {doc['question']}\n"

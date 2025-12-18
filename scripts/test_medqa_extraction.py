@@ -8,9 +8,7 @@ and generates a detailed failure report.
 
 import json
 import re
-import sys
-from pathlib import Path
-from collections import defaultdict, Counter
+from collections import Counter
 from typing import Dict, List, Tuple, Optional
 
 # Note: We implement regex testing directly to avoid dependency issues
