@@ -439,12 +439,6 @@ SCHEMA_METADATA = {
         "expected_insight": "Impact of numeric constraints",
         "schema_class": "MCQAnswerWithConfidence",
     },
-    "mc_level2_confidence_new": {
-        "constraint_level": 2,
-        "description": "Answer with confidence score",
-        "expected_insight": "Impact of numeric constraints",
-        "schema_class": "MCQAnswerWithConfidenceNew",
-    },
     "mc_level3_justification": {
         "constraint_level": 3,
         "description": "Answer with justification",
