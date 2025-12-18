@@ -55,7 +55,12 @@ def main():
     
     # Export Multiple Choice schemas
     print("📋 Multiple Choice Schemas:")
-    for name, schema_class in MULTIPLE_CHOICE_SCHEMAS.items():
+    valid_mc_schemas = {
+        name: schema_class
+        for name, schema_class in MULTIPLE_CHOICE_SCHEMAS.items()
+        if hasattr(schema_class, "model_json_schema")
+    }
+    for name, schema_class in valid_mc_schemas.items():
         output_path = OUTPUT_DIR / f"mc_{name}.json"
         export_schema(schema_class, output_path)
     
