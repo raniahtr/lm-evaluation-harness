@@ -18,7 +18,7 @@ def doc_to_text(doc) -> str:
     prompt += "\nA: Provide the final answer enclosed in boxed{the_answer}."
     return prompt
 
-def doc_to_text_medmcqa(doc, is_schema_mode_active: bool = True) -> str:
+def doc_to_text_medmcqa(doc, is_schema_mode_active: bool = False) -> str:
     choices = [doc["opa"], doc["opb"], doc["opc"], doc["opd"]]
     option_choices = {
         "A": choices[0],
