@@ -43,6 +43,7 @@ _INCOMPLETE_JSON_LENGTH_THRESHOLD = 100  # Max length to consider JSON incomplet
 _MINIMAL_JSON_LENGTH_THRESHOLD = 10  # Max length for minimal/incomplete JSON (just opening brace)
 _TEXT_PREVIEW_LENGTH = 200  # Length for text/schema previews in logs
 _ERROR_PREVIEW_LENGTH = 100  # Length for error message previews
+_SCHEMA_MIN_TOKENS = 512  # Minimum tokens for schema-constrained generation to ensure complete JSON
 
 
 @register_model("sglang-schema")
@@ -476,7 +477,7 @@ class SGLangSchemaLM(SGLangLM):
                 # Use self._json_schema_str as source of truth (not kwargs check)
                 if self._json_schema_str:
                     # Increase max tokens to ensure complete JSON generation
-                    max_gen_toks = max(max_gen_toks, 512)
+                    max_gen_toks = max(max_gen_toks, _SCHEMA_MIN_TOKENS)
                     # Don't override stop sequences - let SGLang handle schema-constrained generation
                     until = []  # Clear stop sequences for schema runs
                     eval_logger.info(
@@ -814,9 +815,6 @@ class SGLangSchemaLM(SGLangLM):
                 raise ValueError(
                     f"Schema file {path} could not be parsed as JSON or YAML: {exc}"
                 ) from exc
-        
-        # Should never reach here, but just in case
-        raise ValueError(f"Unsupported schema file format: {path}")
 
     def _validate_output(self, text: str) -> str:
         """

@@ -18,7 +18,6 @@ from .medical_qa_schemas import (
     # Multiple Choice schemas (A/B/C/D)
     StrictMultipleChoice,
     MCQAnswerWithConfidence,
-    MCQAnswerWithConfidenceNew,
     MCQAnswerWithJustification,
     MultipleChoiceWithReasoning,
     MCQWithFullElimination,
@@ -41,7 +40,6 @@ __all__ = [
     "InvertedCoTAnswer",
     "StrictMultipleChoice",
     "MCQAnswerWithConfidence",
-    "MCQAnswerWithConfidenceNew",
     "MCQAnswerWithJustification",
     "MultipleChoiceWithReasoning",
     "MCQWithFullElimination",
