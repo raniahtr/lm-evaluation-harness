@@ -227,7 +227,9 @@ class MCQAnswerWithJustification(BaseModel):
     answer: Literal["A", "B", "C", "D"] = Field(
         description="The multiple choice answer"
     )
-    justification: constr(max_length=200)
+    justification: constr(max_length=200) = Field(
+        description="Brief justification for the chosen answer"
+    )
     
     class Config:
         extra = "forbid"
