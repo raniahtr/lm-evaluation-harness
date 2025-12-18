@@ -10,7 +10,7 @@ Each schema level provides different insights:
 - Level 5-6: Test flexibility and natural language handling
 """
 
-from typing import List, Optional, Literal, Dict
+from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, field_validator, constr
 
 
