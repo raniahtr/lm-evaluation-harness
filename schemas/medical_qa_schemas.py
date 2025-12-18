@@ -203,7 +203,7 @@ class StrictMultipleChoice(BaseModel):
 
 class MCQAnswerWithConfidence(BaseModel):
     """Level 2 for MC: Answer with confidence score."""
-    answer: Literal["A", "B", "C", "D"]= Field(
+    answer: Literal["A", "B", "C", "D"] = Field(
         description="The multiple choice answer"
     )
     confidence: float = Field(
