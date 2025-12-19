@@ -1,5 +1,5 @@
 
-def doc_to_text(doc, is_schema_mode_active: bool = True) -> str:
+def doc_to_text(doc, is_schema_mode_active: bool = False) -> str:
     ctxs = "\n".join(doc["CONTEXTS"])
     if is_schema_mode_active:
         return (

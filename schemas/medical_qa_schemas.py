@@ -203,13 +203,13 @@ class StrictMultipleChoice(BaseModel):
 
 class MCQAnswerWithConfidence(BaseModel):
     """Level 2 for MC: Answer with confidence score."""
-    answer: Literal["A", "B", "C", "D"]= Field(
+    answer: Literal["A", "B", "C", "D"] = Field(
         description="The multiple choice answer"
     )
     confidence: float = Field(
         ge=0.0,
         le=1.0,
-        description="confidence score"
+        description="Confidence score"
     )
     
     class Config:
@@ -438,12 +438,6 @@ SCHEMA_METADATA = {
         "description": "Answer with confidence score",
         "expected_insight": "Impact of numeric constraints",
         "schema_class": "MCQAnswerWithConfidence",
-    },
-    "mc_level2_confidence_new": {
-        "constraint_level": 2,
-        "description": "Answer with confidence score",
-        "expected_insight": "Impact of numeric constraints",
-        "schema_class": "MCQAnswerWithConfidenceNew",
     },
     "mc_level3_justification": {
         "constraint_level": 3,

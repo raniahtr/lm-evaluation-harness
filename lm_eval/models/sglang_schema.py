@@ -642,16 +642,23 @@ class SGLangSchemaLM(SGLangLM):
                 
                 outputs.append(result)
             except http_requests.exceptions.HTTPError as exc:
-                # Try to get error details from response
+                # Try to get error details from response (if available)
+                error_response = getattr(exc, "response", None)
                 error_detail = ""
-                try:
-                    error_detail = response.text
-                except Exception:
-                    # Best-effort attempt: if we can't get error details (e.g., response.text
-                    # doesn't exist or raises), continue with empty error_detail
-                    pass
+                status_code = "unknown"
+                if error_response is not None:
+                    try:
+                        error_detail = error_response.text
+                    except Exception:
+                        # Best-effort attempt: if we can't get error details (e.g., response.text
+                        # doesn't exist or raises), continue with empty error_detail
+                        pass
+                    try:
+                        status_code = error_response.status_code
+                    except Exception:
+                        status_code = "unknown"
                 eval_logger.error(
-                    f"Remote SGLang request failed with {response.status_code}: {exc}\n"
+                    f"Remote SGLang request failed with {status_code}: {exc}\n"
                     f"Error details: {error_detail}\n"
                     f"Payload keys: {list(payload.keys())}, sampling_params keys: {list(payload.get('sampling_params', {}).keys())}"
                 )
